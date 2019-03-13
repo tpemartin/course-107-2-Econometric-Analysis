@@ -55,7 +55,10 @@ data("Journals")
 
 ```{r ch2-summary, results='hide'}
 
-
+Journals %>%
+   mutate(
+     citeprice=price/citations
+   )-> journals
 ```
 
 # 因果問句
