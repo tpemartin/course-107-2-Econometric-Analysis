@@ -66,12 +66,42 @@ Journals %>% mutate(citeprice=price/citations) -> journals
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
 ```{r ols-paircorr-r, echo=TRUE}
-
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%      #這行多了%>%因為這樣才會存起來，並不是只顯示出來
+  pairs.panels()
+```
+```{r}
+# traditional usage
+select(journals, citeprice, subs) -> tempDF
+pairs.panels(tempDF)
 ```
 
 
-```{r ols-paircorr2-r}
+```{r}
+#pipe expression
+journals %>% 
+  select(citeprice, subs) -> tempDF
 
+tempDF %>% pairs.panels()
+```
+
+```{r}
+# %>% 的使用方法：journal %>% output of前面＝input of 後面 %>% 某些東西
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
+
+# 跑出的圖：citeprice=x;subs=y
+```
+
+```{r ols-paircorr2-r}
+journals %>% 
+  select(citeprice,subs) %>%
+  mutate_all(log) %>%     # mutate:改變，把所有變數取log
+  pairs.panels()     # pairs.panels一定要dataframe
+
+# note：多用 ?dplyr::mutate_all 查函數的使用
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
