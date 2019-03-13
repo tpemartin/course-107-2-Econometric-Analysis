@@ -1,6 +1,6 @@
 ---
 title: "R for OLS"
-author: "Ting-Wei Chen"
+author: "姓名"
 date: "3/6/2019"
 output: 
   html_document: 
