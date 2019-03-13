@@ -75,6 +75,7 @@ Journals %>%
 library(psych)
 journals %>% 
   select(citeprice,subs) %>%
+  mutate_all(log) %>%
   pairs.panels()
 ```
 
