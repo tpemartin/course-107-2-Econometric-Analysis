@@ -110,7 +110,10 @@ journals %>%
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
-
+journals %>% 
+  select(citeprice,subs) %>%
+  mutate_all(log) %>%
+  pairs.panels()
 
 ```
 
