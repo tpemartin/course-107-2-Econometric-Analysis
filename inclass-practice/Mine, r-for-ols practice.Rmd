@@ -67,12 +67,32 @@ summary(journals)
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
 ```{r ols-paircorr-r, echo=TRUE}
+journals %>%
+  select(citeprice, subs) %>%
+  pairs.panels()
+#問:期刊定價如何影響銷售量?
+#左下圖結合了左上和右下圖的結果(無母數)。其中，紅點表示citeprice和subs的平均。
+#解釋此圖:這組資料的mean不等於中心趨勢。此時用OLS法估計(各點和平均的距離的加權)可能會有偏誤，因為資料的集中趨勢因為極大值的關係，而沒辦法被mean表示。
+#拿到資料以後先觀察"分配"，而不是直接做OLS等估計。(e.g.用四分衛圖觀察資料分布)
+```
+#上面code: 選出"journals"裡面的"citeprice"裡面的"subs"。另外，上面的code並沒有被Assign，因此無法在後面被繼續利用。
 
+#在console找package"psych"中的函數的用法:
+>?psych::pairs.panels
+
+```{r}
+#traditional expression v.s. pipe expression
 ```
 
 
 ```{r ols-paircorr2-r}
-
+journals %>%
+  select(citeprice, subs) %>%
+  mutate_all(log)%>%
+  pairs.panels()
+#tbl.:a kind of data.frame
+#mutate_all(log):把journlas中select出來全部的資料取log
+#和上圖的比較:中間集中的趨勢和平均數位置較一致，因此取log後的情況較適合進行OLS估計。
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
