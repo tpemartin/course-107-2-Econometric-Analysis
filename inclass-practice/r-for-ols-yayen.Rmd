@@ -70,13 +70,30 @@ Journals %>% mutate(
 
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
-```{r ols-paircorr-r, echo=TRUE}
+?select
 
+```{r ols-paircorr-r, echo=TRUE}
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
 ```
 
 
 ```{r ols-paircorr2-r}
-
+#traditionanl usage
+select(journals,citeprice,subs) ->
+  tempDF
+pairs.panels(tempDF)
+# pipr expression
+journals %>%
+  select(citeprice,subs) #%>%
+  pairs.panels(tempDF)  
+```
+```{r}
+journals %>%
+  select(citeprice,subs) #%>%
+  pairs.panels(tempDF)
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
