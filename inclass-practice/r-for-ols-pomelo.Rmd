@@ -78,6 +78,20 @@ journals %>%
   pairs.panels()
 ```
 
+```{r ols-paircoor2-r}
+#traditional usage
+select(journals,citeprice,subs)->
+  tempDF
+pairs.panels(tempDF)
+
+#pipe expression
+journals %>%
+  select(citeprice,subs)->
+  tempDF
+tempDF%>%
+  pairs.panels()
+```
+
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
 
 # 效應評估
