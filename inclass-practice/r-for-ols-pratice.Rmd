@@ -53,8 +53,20 @@ data("Journals")
 
 # 資料處理：產生新變數 dplyr::mutate
 
-```{r ch2-summary, results='hide'}
+```{r}
 
+mutate(Journals,citeprice=price/citations) -> journals
+
+Journals %>% 
+  mutate(
+    citeprice=price/citations
+    ) -> 
+  journals
+```
+
+```{r ch2-summary, results='hide'}
+Journals %>% mutate(citeprice=price/citations) -> journals
+summary(journals)
 
 ```
 
@@ -63,7 +75,17 @@ data("Journals")
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
 ```{r ols-paircorr-r, echo=TRUE}
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
+```
 
+```{r}
+# pipe expression
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
 ```
 
 
