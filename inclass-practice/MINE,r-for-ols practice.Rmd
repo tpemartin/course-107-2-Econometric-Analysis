@@ -1,5 +1,5 @@
 ---
-title: "R for OLS"
+title: "Mine R for OLS"
 author: "Ting-Wei Chen"
 date: "3/6/2019"
 output: 
