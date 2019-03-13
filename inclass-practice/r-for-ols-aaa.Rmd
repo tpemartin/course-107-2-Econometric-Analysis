@@ -64,14 +64,27 @@ summary(journals)
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
 ```{r ols-paircorr-r, echo=TRUE}
-
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
 ```
 
 
 ```{r ols-paircorr2-r}
+#traditional usage
+select(journals,citeprice,subs)->
+  tempDF
+pairs.panels(tempDF)
 
+#pipe expression
+journals %>%
+  select(citeprice,subs)->
+  tempDF
+tempDF%>%
+  pairs.panels()
 ```
-
+#上面兩種都對
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
 
 # 效應評估
