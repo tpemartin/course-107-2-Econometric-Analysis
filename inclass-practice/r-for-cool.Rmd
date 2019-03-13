@@ -67,11 +67,15 @@ Journals %>%
 
 ```{r ols-paircorr-r, echo=TRUE}
 
+
 ```
 
 
 ```{r ols-paircorr2-r}
-
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
