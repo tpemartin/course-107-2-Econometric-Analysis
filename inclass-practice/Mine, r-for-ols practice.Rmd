@@ -54,9 +54,13 @@ data("Journals")
 # 資料處理：產生新變數 dplyr::mutate
 
 ```{r ch2-summary, results='hide'}
-
+Journals %>% mutate(citeprice=price/citations) -> journals
+summary(journals)
 
 ```
+
+#對上面code chunk的說明:
+#若依照dplyr::mutate的格式來打:mutate(Journals,citeprice...)而第一個variable是一個data.frame。code chunk是一個pipe，pipe的概念是"我要在Journals這個data.frame做一個mutate"，並且將結果assign為"journals"。
 
 # 因果問句
 
