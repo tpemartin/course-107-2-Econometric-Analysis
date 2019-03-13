@@ -58,7 +58,7 @@ data("Journals")
 ```{r ch2-summary, results='hide'}
 Journals %>% mutate(citeprice=price/citations) -> journals
 summary(journals)
-
+#333333
 #pipe expression
 Journals %>% mutate(
   citeprice=price/citations
