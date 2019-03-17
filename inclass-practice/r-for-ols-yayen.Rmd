@@ -44,6 +44,24 @@ library("knitr")
 data("Journals")
 ```
 
+```{r}
+class(Journals)#Journals 是一個dataframe 的結構
+```
+
+```{r}
+#自己練習
+class(Journals$title)
+class(Journals$price)
+```
+
+```{r} 
+#自己練習
+journals <- Journals %>% mutate(citeprice=price/citations)
+summary(journals)
+
+
+```
+
 
 > Journal這個dataframe的結構(structure)是什麼？有幾個變數？每個變數物件的類別(class)又是什麼？
 
@@ -55,7 +73,7 @@ data("Journals")
 
 
 ```{r ch2-summary, results='hide'}
-Journals %>% mutate(citeprice=price/citations) -> journals
+Journals %>% mutate(citeprice=price/citations) -> journals #我不喜歡這種寫法
 summary(journals)
 #333333
 #pipe expression
@@ -71,11 +89,18 @@ Journals %>% mutate(
 
 ?select
 
+```{r}
+library(psych)
+journals %>%  
+  select (citeprice,subs)%>% # 將citeprice 與 subs 列出來
+  pairs.panels               # 把citeprice 與 subs 畫成圖
+```
+
 ```{r ols-paircorr-r, echo=TRUE}
 library(psych)
 journals %>% 
   select(citeprice,subs) %>%
-  pairs.panels()
+  pairs.panels(smooth = TRUE, density = TRUE)
 ```
 
 
@@ -119,7 +144,7 @@ journals %>%
 > 期刊越重要，其引用次數越高，因此高引用次數的期刊，你認為它在「低價格下的訂閱數」（立足點）會比較高還是低？
 
 > 承上題，單純比較「期刊引用單價」高低間的「訂閱數量」差別，所估算出來的價格效果以絕對值來看會高估、還是低估？為什麼？
-
+# test
 # 複迴歸模型
 
 ```{r}
