@@ -1,6 +1,6 @@
 ---
 title: "R for OLS"
-author: "姓名"
+author: "lin-tingyu"
 date: "3/6/2019"
 output: 
   html_document: 
@@ -53,25 +53,8 @@ data("Journals")
 
 # 資料處理：產生新變數 dplyr::mutate
 
-```{r}
-# if follow usage,
-mutate(
-  Journals,
-  citeprice=price/citations
-  ) -> journals
-# pipe expression,
-Journals %>% 
-  mutate(
-    citeprice=price/citations
-    ) -> 
-  journals
-```
-
-
-
 ```{r ch2-summary, results='hide'}
-Journals %>% mutate(citeprice=price/citations) -> journals
-summary(journals)
+
 
 ```
 
@@ -80,39 +63,12 @@ summary(journals)
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
 ```{r ols-paircorr-r, echo=TRUE}
-library(psych)
-journals %>% 
-  select(citeprice,subs) %>%
-  pairs.panels()
-```
 
-```{r}
-# traditional usage
-select(journals,citeprice,subs) -> tempDF
-pairs.panels(tempDF)
-```
-
-```{r}
-# pipe expression
-journals %>% 
-  select(citeprice,subs) ->
-  tempDF
-tempDF %>%
-  pairs.panels()
-```
-
-```{r}
-journals %>% 
-  select(citeprice,subs) %>%
-  pairs.panels()
 ```
 
 
 ```{r ols-paircorr2-r}
-journals %>% 
-  select(citeprice,subs) %>%
-  mutate_all(log) %>%
-  pairs.panels()
+
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
