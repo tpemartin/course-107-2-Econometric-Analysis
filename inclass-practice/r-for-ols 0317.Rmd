@@ -54,8 +54,13 @@ data("Journals")
 # 資料處理：產生新變數 dplyr::mutate
 
 ```{r ch2-summary, results='hide'}
+Journals %>% mutate(citeprice=price/citations) -> journals
+summary(journals)
 
-
+# 多了一個變數（從十個變到十一個，在環境中新的變數在data的最下面；在source中是在最右下）
+# journals是新的dataframe
+# notice the name of data environment (from "Journals" to "journals")
+# if u write summary(journals), the consequence would be shown below
 ```
 
 # 因果問句
