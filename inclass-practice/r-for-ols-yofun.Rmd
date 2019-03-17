@@ -63,6 +63,10 @@ Journals %>%
     ) -> journals
 ```
 
+```{r}
+summary(journals)
+```
+
 # 因果問句
 
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
