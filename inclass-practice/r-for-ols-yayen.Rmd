@@ -89,10 +89,12 @@ journals %>%
   select(citeprice,subs) #%>%
   pairs.panels(tempDF)  
 ```
+
 ```{r}
-journals %>%
-  select(citeprice,subs) #%>%
-  pairs.panels(tempDF)
+journals %>% 
+  select(citeprice,subs) %>%
+  mutate_all(log) %>%
+  pairs.panels()
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
