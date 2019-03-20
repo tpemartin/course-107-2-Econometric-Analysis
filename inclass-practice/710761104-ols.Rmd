@@ -140,7 +140,7 @@ augment(model2)
 glance(model1)
 glance(model2)
 ```
-```{r}
+```{r results='asis'}
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model_1
 journals %>%
@@ -150,9 +150,8 @@ journals %>%
 coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 library(stargazer)
-
 stargazer(model_1, model_2, 
-          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          se=list(tidy(model_1_coeftest)$std.error,tidy(model_2_coeftest)$std.error),
           type="html",
           align=TRUE)
 ```
