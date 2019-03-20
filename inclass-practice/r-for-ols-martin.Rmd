@@ -123,7 +123,7 @@ journals %>%
 
 > 這裡「立足點」指得是什麼？
 
-
+#注意NA，以免之後filter might be complex
 # 進階關連分析
 
 數值變數v.s.數值變數
