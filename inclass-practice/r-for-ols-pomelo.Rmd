@@ -229,10 +229,15 @@ stargazer(model_1, model_2,
           type="html",
           align=TRUE)
 ```
-```{r}
-
+```{r, results='asis'}
+stargazer(model_1, model_2,
+          se=list(
+            model_1_coeftest[,"Std. Error"],
+            model_2_coeftest[,2]
+          )
 ```
 
+standard error:原始作法，使用矩陣
 ```{r}
 
 ```
