@@ -221,13 +221,16 @@ library(lmtest)
 library(stargazer)
 
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
-coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest#此物件為矩陣
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 
 stargazer(model_1, model_2, 
           se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
           type="html",
           align=TRUE)
+```
+```{r}
+
 ```
 
 ```{r}
