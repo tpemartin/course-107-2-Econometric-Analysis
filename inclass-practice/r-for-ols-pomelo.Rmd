@@ -53,6 +53,22 @@ data("Journals")
 
 # 資料處理：產生新變數 dplyr::mutate
 
+```{r}
+# if follow usage,
+mutate(
+  Journals,
+  citeprice=price/citations
+  ) -> journals
+# pipe expression,
+Journals %>% 
+  mutate(
+    citeprice=price/citations
+    ) -> 
+  journals
+```
+
+
+
 ```{r ch2-summary, results='hide'}
 Journals %>% mutate(citeprice=price/citations) -> journals
 summary(journals)
@@ -70,25 +86,32 @@ journals %>%
   pairs.panels()
 ```
 
+```{r}
+# traditional usage
+select(journals,citeprice,subs) -> tempDF
+pairs.panels(tempDF)
+```
+
+```{r}
+# pipe expression
+journals %>% 
+  select(citeprice,subs) ->
+  tempDF
+tempDF %>%
+  pairs.panels()
+```
+
+```{r}
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
+```
+
 
 ```{r ols-paircorr2-r}
 journals %>% 
   select(citeprice,subs) %>%
   mutate_all(log) %>%
-  pairs.panels()
-```
-
-```{r ols-paircoor2-r}
-#traditional usage
-select(journals,citeprice,subs)->
-  tempDF
-pairs.panels(tempDF)
-
-#pipe expression
-journals %>%
-  select(citeprice,subs)->
-  tempDF
-tempDF%>%
   pairs.panels()
 ```
 
@@ -118,6 +141,16 @@ tempDF%>%
 
 ```{r}
 
+a<- NA
+```
+
+```{r}
+is.na(a)
+
+a=="NA"
+```
+
+```{r}
 
 ```
 
