@@ -163,7 +163,7 @@ coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 ```
 
-```{r}
+```{r,results='asis'}
 stargazer(model_1, model_2, 
           se=list(
             model_1_coeftest[,"Std. Error"], 
