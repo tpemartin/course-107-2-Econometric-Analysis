@@ -129,7 +129,15 @@ journals %>%
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -140,12 +148,51 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+model1 <- journals %>% 
+          lm(log(subs)~log(citeprice),data = .) 
 
+
+#pipe1
+
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 
 ```
 
 ## 模型比較
 
+```{r}
+library(broom)
+tidy(model1)
+```
+
+
 ```{r ols-comp-r, results='hide', warning=FALSE}
 
 ```
+
+
+```{r}
+#第二堂課蠻重要10.50之後
+#V(beta hate) = sigma^2(x'x)^-1  有可能會考
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
+
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+#c = cross section
+#H = heteoro.....
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
+```
+
