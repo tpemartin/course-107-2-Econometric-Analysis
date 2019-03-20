@@ -104,12 +104,17 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
 
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 
 ```
 
 ## 模型比較
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
-
+library(broom)
+tidy(model1)
 ```
