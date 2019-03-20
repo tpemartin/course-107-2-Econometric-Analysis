@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=F)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # 參考資料
@@ -140,7 +140,7 @@ augment(model2)
 glance(model1)
 glance(model2)
 ```
-```{r results='asis'}
+```{r, results='asis'}
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model_1
 journals %>%
