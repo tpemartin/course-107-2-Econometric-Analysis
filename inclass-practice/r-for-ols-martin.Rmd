@@ -1,6 +1,6 @@
 ---
 title: "R for OLS"
-author: "姓名"
+author: "Jim"
 date: "3/6/2019"
 output: 
   html_document: 
