@@ -133,12 +133,73 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+#traditional
+lm(log(subs)~log(citeprice),data = journals)
 
 
+#pipe2
+journals %>%
+  lm(log(subs)~log(citeprice),data=.) -> model1
+#summary has more information
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 ```
-
+```{r}
+#broom的function
+tidy(model1)
+```
+```{r}
+augment(model1)
+```
+```{r}
+glance(model1)
+```
+#重點是sandwich,lmtest
+#stargazer只是做報表好看
 ## 模型比較
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
 
+library(sandwich)
+library(lmtest)
+library(stargazer)
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
+```
+```{r, results='asis'}
+stargazer(model_1, model_2,
+          se=list(
+            model_1_coeftest[,"Std. Error"],
+            model_2_coeftest[,2]
+          ),
+          type="html",
+          align=TRUE)
+```
+
+
+
+```{r}
+#dataframe save up
+tidy(model_1_coeftest) -> model1CoeftestDF
+tidy(model_2_coeftest) -> model2CoeftestDF
+```
+
+```{r}
+stargazer(model_1, model_2,
+          se=list(
+            model1CoeftestDF$std.error,
+            model2CoeftestDF$std.error
+          ),
+          type="html",
+          align =TRUE)
 ```
