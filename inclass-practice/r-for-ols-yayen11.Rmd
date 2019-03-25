@@ -89,17 +89,25 @@ journals %>%
 ```{r}
 # traditional usage
 select(journals,citeprice,subs) -> tempDF
+class(tempDF)
 pairs.panels(tempDF)
 ```
 
-```{r}
+```{r} 
 # pipe expression
-journals %>% 
-  select(citeprice,subs) ->
-  tempDF
+tempDF -> journals %>% 
+  select(citeprice,subs)
+
+#要習慣用一個自己的Series，pipe不錯
+
+
 tempDF %>%
   pairs.panels()
+
+# ?dplyr::select  tbl is dataframe
 ```
+
+
 
 ```{r}
 journals %>% 
@@ -161,12 +169,21 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+# traditionnal
+lm(log(subs)~log(citeprice),data=
+journals)
+
+#pipe 2
+log(subs)~log(citeprice) %>%
+  lm(data = journals)
+
+#pipe 2
 model1 <- journals %>% 
-          lm(log(subs)~log(citeprice),data = .) 
+  lm(log(subs)~log(citeprice),data = .) 
 
-journals %>%
-  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
-
+model2 <- journals %>%
+  lm(log(subs)~log(citeprice)
+     +foundingyear,data=.)
 ```
 
 ## broom 

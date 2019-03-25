@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=F)
+knitr::opts_chunk$set(echo = TRUE, eval=T)
 ```
 
 # 參考資料
@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, eval=F)
 knitr::opts_chunk$set(echo = TRUE, message=FALSE)
 ```
 
-
+#test the merge
 # setup
 
 ```{r}
@@ -53,23 +53,31 @@ data("Journals")
 
 # 資料處理：產生新變數 dplyr::mutate
 
+```{r}
+# if follow usage,
+mutate(
+  Journals,
+  citeprice=price/citations
+  ) -> journals
+# pipe expression,
+Journals %>% 
+  mutate(
+    citeprice=price/citations
+    ) -> 
+  journals
+```
+
 
 
 ```{r ch2-summary, results='hide'}
 Journals %>% mutate(citeprice=price/citations) -> journals
 summary(journals)
-#333333
-#pipe expression
-Journals %>% mutate(
-  citeprice=price/citations
-  )->
-  Journals
+
 ```
 
 # 因果問句
 
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
-
 
 ```{r ols-paircorr-r, echo=TRUE}
 library(psych)
@@ -78,19 +86,37 @@ journals %>%
   pairs.panels()
 ```
 
-
-```{r ols-paircorr2-r}
-#traditionanl usage
-select(journals,citeprice,subs) ->
-  tempDF
+```{r}
+# traditional usage
+select(journals,citeprice,subs) -> tempDF
+class(tempDF)
 pairs.panels(tempDF)
-# pipr expression
-journals %>%
-  select(citeprice,subs) #%>%
-  pairs.panels(tempDF)  
 ```
 
+```{r} 
+# pipe expression
+tempDF -> journals %>% 
+  select(citeprice,subs)
+
+#要習慣用一個自己的Series，pipe不錯
+
+
+tempDF %>%
+  pairs.panels()
+
+# ?dplyr::select  tbl is dataframe
+```
+
+
+
 ```{r}
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
+```
+
+
+```{r ols-paircorr2-r}
 journals %>% 
   select(citeprice,subs) %>%
   mutate_all(log) %>%
@@ -101,20 +127,38 @@ journals %>%
 
 # 效應評估
 
+當解釋變數並非直接代表有沒有受試的dummy variable(即只有0或1可能值)時，可以用以下的間斷例子來思考迴歸模型的係數含意：
+
+假設$P_i$就只有高價（$P_H$）及低價（$P_L$）兩種，$Y_{Hi},Y_{Li}$分別代表期刊$i$在在高價及低價的訂閱量，我們觀察到的訂量$Y_i$只會是$Y_{Hi},Y_{Li}$其中一個。我們可以將$Y_i$與$P_i$寫成如下的效應關係：
+
+$$Y_i=Y_{Li}+\frac{Y_{Hi}-Y_{Li}}{P_H-P_L}(P_i-P_L)$$
+
+
+若假設價格對每個期刊帶來的單位變化固定，即：
+$$\frac{Y_{Hi}-Y_{Li}}{P_H-P_L}=\beta_1^*$$
+
+則
+$$Y_i=Y_{Li}+\beta_1^*(P_i-P_L)$$
+
 > 單純比較不同「期刊價格」(citeprice)的期刊所獨得的圖書館「訂閱數」(subs)變化並無法反應真正的「期刊價格」效應，原因是「立足點」並不與「期刊價格」獨立。
 
 > 這裡「立足點」指得是什麼？
 
-
+#注意NA，以免之後filter might be complex
 # 進階關連分析
 
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
-journals %>% 
-  select(citeprice,subs) %>%
-  mutate_all(log) %>%
-  pairs.panels()
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
+
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -125,12 +169,78 @@ journals %>%
 # 複迴歸模型
 
 ```{r}
+# traditionnal
+lm(log(subs)~log(citeprice),data=
+journals)
+
+#pipe 2
+log(subs)~log(citeprice) %>%
+  lm(data = journals)
+
+#pipe 2
+model1 <- journals %>% 
+  lm(log(subs)~log(citeprice),data = .) 
+
+model2 <- journals %>%
+  lm(log(subs)~log(citeprice)
+     +foundingyear,data=.)
+```
+
+## broom 
+
+  * tidy()
+  
+  * augment()
+  
+  * glance()
 
 
 ```
 
+```{r}
+augment(model1)
+```
+
+
 ## 模型比較
+
+```{r}
+library(broom)
+tidy(model1)
+```
+
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
 
 ```
+
+
+```{r}
+#第二堂課蠻重要10.50之後
+#V(beta hate) = sigma^2(x'x)^-1  有可能會考
+
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
+
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+#c = cross section
+#H = heteoro.....
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
+```
+
+```{r}
+glance(model1)
+```
+
