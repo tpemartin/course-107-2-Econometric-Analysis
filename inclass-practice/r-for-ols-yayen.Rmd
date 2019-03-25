@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=T)
+knitr::opts_chunk$set(echo = TRUE, eval=F)
 ```
 
 # 參考資料
@@ -228,9 +228,12 @@ library(lmtest)
 library(stargazer)
 ```
 
-
-
 ```{r}
+glance(model1)
+```
+
+
+```{r, results='asis'}
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
 #c = cross section
 #H = heteoro.....
@@ -242,20 +245,17 @@ coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 
 modelCoe2 <- tidy(model_2_coeftest)
 
-#一定要用 list
-stargazer(model_1, model_2, 
-          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
-          type="html",
-          align=TRUE)
 ```
 
-```{r}
-stargazer(model_1, model_2,se=list(
-      tidy(modelCoe1)$std.error,
-      tidy(modelCoe2)$std.error
-       ),type="html",
-       align=TRUE)
-
+```{r, results="asis"}
+#一定要用 list
+stargazer(model_1, model_2, 
+          se=list(
+            model_1_coeftest[,"Std. Error"], 
+            model_2_coeftest[,2]
+            ),
+          type="html",
+          align=TRUE)
 ```
 
 
