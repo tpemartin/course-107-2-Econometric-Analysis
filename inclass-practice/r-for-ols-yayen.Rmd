@@ -184,6 +184,7 @@ model1 <- journals %>%
 model2 <- journals %>%
   lm(log(subs)~log(citeprice)
      +foundingyear,data=.)
+summary(model1)
 ```
 
 ## broom 
@@ -195,6 +196,9 @@ model2 <- journals %>%
   * glance()
 
 
+```{r}
+library(broom)
+tidy(model1)
 ```
 
 ```{r}
@@ -203,11 +207,6 @@ augment(model1)
 
 
 ## 模型比較
-
-```{r}
-library(broom)
-tidy(model1)
-```
 
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
@@ -227,18 +226,38 @@ journals %>%
 library(sandwich)
 library(lmtest)
 library(stargazer)
+```
 
+
+
+```{r}
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
 #c = cross section
 #H = heteoro.....
 coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+
+modelCoe1 <- tidy(model_1_coeftest)
+
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 
+modelCoe2 <- tidy(model_2_coeftest)
+
+#一定要用 list
 stargazer(model_1, model_2, 
           se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
           type="html",
           align=TRUE)
 ```
+
+```{r}
+stargazer(model_1, model_2,se=list(
+      tidy(modelCoe1)$std.error,
+      tidy(modelCoe2)$std.error
+       ),type="html",
+       align=TRUE)
+
+```
+
 
 ```{r}
 glance(model1)
