@@ -79,7 +79,7 @@ journals %>%
 ```
 
 ```{r}
-#traditional usage
+#traditional usage，selection也是dplyr的function所以出來也是dataframe
 select(journals,citeprice,subs) -> tempDF
 pairs.panels(tempDF)
 ```
