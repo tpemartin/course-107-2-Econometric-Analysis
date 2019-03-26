@@ -54,7 +54,7 @@ data("Journals")
 # 資料處理：產生新變數 dplyr::mutate
 
 ```{r ch2-summary, results='hide'}
-#if follow usage(用法), 幾乎所有dplyr的function(第一個，function可以有很多input)都是dataframe進去dataframe出來
+#if follow usage(用法) 幾乎所有dplyr的function(第一個，function可以有很多input)都是dataframe進去dataframe出來
 mutate(Journals,citeprice=price/citations) -> journals
 #pipe expression(把function第一個input拿到前面，拿出來後就要打%>%)
 Journals %>% 
