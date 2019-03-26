@@ -104,7 +104,7 @@ journals %>%
 ```{r ols-paircorr2-r}
 journals %>% 
   select(citeprice,subs) %>%
-  mutate_all(log) %>% #進出都要dataframe,log內定是ln
+  mutate_all(log) %>% #，對所有變數進行mutate進出都要dataframe,log內定是ln
   pairs.panels()
 ```
 
@@ -135,8 +135,9 @@ journals %>%
 ```{r}
 #traditional
 lm(log(subs)~log(citeprice),data = journals)
-
-
+#pipe1
+log(subs)~log(citeprice) %>%
+  lm(data=journals)
 #pipe2
 journals %>%
   lm(log(subs)~log(citeprice),data=.) -> model1
@@ -145,14 +146,14 @@ journals %>%
   lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 ```
 ```{r}
-#broom的function
-tidy(model1)
+#broom的function，
+tidy(model1) #估計係數的東西
 ```
 ```{r}
-augment(model1)
+augment(model1) #fitted value就是yhat
 ```
 ```{r}
-glance(model1)
+glance(model1) #配適度rsq等等
 ```
 #重點是sandwich,lmtest
 #stargazer只是做報表好看
@@ -168,7 +169,7 @@ library(sandwich)
 library(lmtest)
 library(stargazer)
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
-coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest #此物件為矩陣
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
 
 stargazer(model_1, model_2, 
@@ -176,6 +177,8 @@ stargazer(model_1, model_2,
           type="html",
           align=TRUE)
 ```
+
+Standard error 原始作法
 ```{r, results='asis'}
 stargazer(model_1, model_2,
           se=list(
@@ -202,4 +205,14 @@ stargazer(model_1, model_2,
           ),
           type="html",
           align =TRUE)
+```
+standard error:tidy
+```{r}
+stargazer(model_1,model_2,
+          se=list(
+            tidy(model_1_coeftest)$std.error,
+            tidy(model_2_coeftest)$std.error
+          ),
+          type="html",
+          align=TRUE)
 ```
