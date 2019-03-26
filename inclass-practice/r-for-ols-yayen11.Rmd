@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, eval=T)
 knitr::opts_chunk$set(echo = TRUE, message=FALSE)
 ```
 
-
+#test the merge
 # setup
 
 ```{r}
@@ -89,17 +89,25 @@ journals %>%
 ```{r}
 # traditional usage
 select(journals,citeprice,subs) -> tempDF
+class(tempDF)
 pairs.panels(tempDF)
 ```
 
-```{r}
+```{r} 
 # pipe expression
-journals %>% 
-  select(citeprice,subs) ->
-  tempDF
+tempDF -> journals %>% 
+  select(citeprice,subs)
+
+#要習慣用一個自己的Series，pipe不錯
+
+
 tempDF %>%
   pairs.panels()
+
+# ?dplyr::select  tbl is dataframe
 ```
+
+
 
 ```{r}
 journals %>% 
@@ -136,13 +144,21 @@ $$Y_i=Y_{Li}+\beta_1^*(P_i-P_L)$$
 
 > 這裡「立足點」指得是什麼？
 
-
+#注意NA，以免之後filter might be complex
 # 進階關連分析
 
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -153,32 +169,21 @@ $$Y_i=Y_{Li}+\beta_1^*(P_i-P_L)$$
 # 複迴歸模型
 
 ```{r}
-a<- NA
-```
+# traditionnal
+lm(log(subs)~log(citeprice),data=
+journals)
 
-```{r}
-is.na(a)
-
-a=="NA"
-```
-
-
-```{r}
-# traditional
-lm(log(subs)~log(citeprice),data=journals)
-
-# pipe 1
+#pipe 2
 log(subs)~log(citeprice) %>%
-  lm(data=journals)
+  lm(data = journals)
 
-# pipe 2
-journals %>% 
-  lm(log(subs)~log(citeprice),data=.) -> model1
+#pipe 2
+model1 <- journals %>% 
+  lm(log(subs)~log(citeprice),data = .) 
 
-
-
-journals %>%
-  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
+model2 <- journals %>%
+  lm(log(subs)~log(citeprice)
+     +foundingyear,data=.)
 ```
 
 ## broom 
@@ -189,26 +194,31 @@ journals %>%
   
   * glance()
 
-```{r}
-library(broom)
-```
 
-```{r}
-tidy(model1)
 ```
 
 ```{r}
 augment(model1)
 ```
 
-```{r}
-glance(model1)
-```
-
 
 ## 模型比較
 
+```{r}
+library(broom)
+tidy(model1)
+```
+
+
 ```{r ols-comp-r, results='hide', warning=FALSE}
+
+```
+
+
+```{r}
+#第二堂課蠻重要10.50之後
+#V(beta hate) = sigma^2(x'x)^-1  有可能會考
+
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model_1
 journals %>%
@@ -219,43 +229,18 @@ library(lmtest)
 library(stargazer)
 
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
-coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest # 此物件為矩陣
+#c = cross section
+#H = heteoro.....
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
-```
 
-
-standard error: 原始做法, 使用矩陣
-```{r, results='asis'}
 stargazer(model_1, model_2, 
-          se=list(
-            model_1_coeftest[,"Std. Error"],
-            model_2_coeftest[,2]
-            ),
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
           type="html",
           align=TRUE)
 ```
 
-standard error: tidy 1
 ```{r}
-tidy(model_1_coeftest)-> model1CoeftestDF
-tidy(model_2_coeftest)-> model2CoeftestDF
-
-stargazer(model_1, model_2, 
-          se=list(
-            model1CoeftestDF$std.error,
-            model2CoeftestDF$std.error
-            ),
-          type="html",
-          align=TRUE)
+glance(model1)
 ```
 
-standard error: tidy 2
-```{r}
-stargazer(model_1, model_2, 
-          se=list(
-            tidy(model_1_coeftest)$std.error,
-            tidy(model_2_coeftest)$std.error
-            ),
-          type="html",
-          align=TRUE)
-```
