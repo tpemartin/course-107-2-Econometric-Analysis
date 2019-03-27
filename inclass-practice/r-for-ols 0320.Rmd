@@ -54,13 +54,8 @@ data("Journals")
 # 資料處理：產生新變數 dplyr::mutate
 
 ```{r ch2-summary, results='hide'}
-Journals %>% mutate(citeprice=price/citations) -> journals
-summary(journals)
 
-# 多了一個變數（從十個變到十一個，在環境中新的變數在data的最下面；在source中是在最右下）
-# journals是新的dataframe
-# notice the name of data environment (from "Journals" to "journals")
-# if u write summary(journals), the consequence would be shown below
+
 ```
 
 # 因果問句
@@ -77,8 +72,6 @@ summary(journals)
 ```
 
 > 為什麼取log後，兩者的相關度變高？它表示兩個變數變得更不獨立嗎？
-# no!
-
 
 # 效應評估
 
@@ -92,7 +85,15 @@ summary(journals)
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -103,12 +104,62 @@ summary(journals)
 # 複迴歸模型
 
 ```{r}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
 
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 
 ```
+2.9
+## broom
+* tidy()
+* augment()
+* glance()
+
+```{r}
+library(broom)
+```
+
+```{r}
+tidy(model1)
+```
+
+```{r}
+augment(model1)  
+# 以dataframe形式取出
+```
+
+```{r}
+glance(model1)
+```
+
 
 ## 模型比較
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
 
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest        
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+# vcovHC is a fuction of sandwich
+# 可幫你做模型檢定
+# HC (heteroscedasticity cross-section)
+# if data is not 橫斷面，不可直接用sandwich  ???check
+# vcovHAC (用於非橫斷面，autocorrelation)
+
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
 ```
