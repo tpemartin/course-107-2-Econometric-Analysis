@@ -1,6 +1,6 @@
 ---
 title: "R for OLS"
-author: "Jim"
+author: "姓名"
 date: "3/6/2019"
 output: 
   html_document: 
@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=F)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # 參考資料
@@ -53,7 +53,9 @@ data("Journals")
 
 # 資料處理：產生新變數 dplyr::mutate
 
-```{r ch2-summary, results='hide'}
+```{r}
+Journals %>% mutate(citeprice=price/citations) -> journals
+summary(journals)
 
 
 ```
@@ -62,12 +64,20 @@ data("Journals")
 
 > 期刊的價格(citeprice，平均文獻引用價格)如何影響其圖書館訂閱量(subs)? 
 
-```{r ols-paircorr-r, echo=TRUE}
+```{r}
+library(psych)
+journals %>% 
+  select(citeprice,subs) %>%
+  pairs.panels()
 
 ```
 
 
-```{r ols-paircorr2-r}
+```{r}
+journals %>% 
+  select(citeprice,subs) %>%
+  mutate_all(log) %>%
+  pairs.panels()
 
 ```
 
@@ -84,8 +94,16 @@ data("Journals")
 
 數值變數v.s.數值變數
 
-```{r ols-paircoor3-r, results='hide'}
+```{r}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -96,12 +114,44 @@ data("Journals")
 # 複迴歸模型
 
 ```{r}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
 
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
 
 ```
-
+```{r}
+summary(model1)
+summary(model2)
+```
 ## 模型比較
 
 ```{r ols-comp-r, results='hide', warning=FALSE}
+library(broom)
+tidy(model1)
+tidy(model2)
+```
+```{r}
+augment(model1)
+augment(model2)
+```
+```{r}
+glance(model1)
+glance(model2)
+```
+```{r, results='asis'}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model_1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model_2
 
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest
+coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+library(stargazer)
+stargazer(model_1, model_2, 
+          se=list(tidy(model_1_coeftest)$std.error,tidy(model_2_coeftest)$std.error),
+          type="html",
+          align=TRUE)
 ```
