@@ -162,6 +162,24 @@ is.na(a)
 a=="NA"
 ```
 
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+# traditional
+lm(log(subs)~log(citeprice),data=journals)
+# pipe 1
+log(subs)~log(citeprice) %>%
+  lm(data=journals)
+# pipe 2
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
+```
 
 ```{r}
 # 判斷變數是否為數值類別
@@ -209,7 +227,7 @@ augment(model1)
 ```{r}
 glance(model1)
 ```
-
+## 模型比較
 ```{r}
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model_1
@@ -229,17 +247,40 @@ stargazer(model_1, model_2,
           type="html",
           align=TRUE)
 ```
+
+
+standard error:原始作法，使用矩陣
 ```{r, results='asis'}
-stargazer(model_1, model_2,
+stargazer(model_1, model_2, 
           se=list(
             model_1_coeftest[,"Std. Error"],
             model_2_coeftest[,2]
-          )
+            ),
+          type="html",
+          align=TRUE)
 ```
 
-standard error:原始作法，使用矩陣
+standard error: tidy 1
 ```{r}
-
+tidy(model_1_coeftest)-> model1CoeftestDF
+tidy(model_2_coeftest)-> model2CoeftestDF
+stargazer(model_1, model_2, 
+          se=list(
+            model1CoeftestDF$std.error,
+            model2CoeftestDF$std.error
+            ),
+          type="html",
+          align=TRUE)
+```
+standard error: tidy 2
+```{r}
+stargazer(model_1, model_2, 
+          se=list(
+            tidy(model_1_coeftest)$std.error,
+            tidy(model_2_coeftest)$std.error
+            ),
+          type="html",
+          align=TRUE)
 ```
 
 
