@@ -12,9 +12,6 @@ output:
       smooth_scroll: false
     code_folding: hide
 ---
-```{r}
-
-```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval=T)
@@ -165,23 +162,46 @@ is.na(a)
 a=="NA"
 ```
 
+```{r}
 
+```
+```{r}
+
+```
 ```{r}
 # traditional
 lm(log(subs)~log(citeprice),data=journals)
-
 # pipe 1
 log(subs)~log(citeprice) %>%
   lm(data=journals)
-
 # pipe 2
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model1
+journals %>%
+  lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
+```
 
+```{r}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
+```
+```{r}
+journals %>% 
+  lm(log(subs)~log(citeprice),data=.) -> model1
 
 journals %>%
   lm(log(subs)~log(citeprice)+foundingyear,data=.) -> model2
+```
+
+```{r}
+
 ```
 
 ## broom 
@@ -207,11 +227,8 @@ augment(model1)
 ```{r}
 glance(model1)
 ```
-
-
 ## 模型比較
-
-```{r ols-comp-r, results='hide', warning=FALSE}
+```{r}
 journals %>% 
   lm(log(subs)~log(citeprice),data=.) -> model_1
 journals %>%
@@ -222,12 +239,17 @@ library(lmtest)
 library(stargazer)
 
 #使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
-coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest # 此物件為矩陣
+coeftest(model_1, vcov. = vcovHC, type="HC1") -> model_1_coeftest#此物件為矩陣
 coeftest(model_2, vcov. = vcovHC, type="HC1") -> model_2_coeftest
+
+stargazer(model_1, model_2, 
+          se=list(model_1_coeftest[,"Std. Error"], model_2_coeftest[,2]),
+          type="html",
+          align=TRUE)
 ```
 
 
-standard error: 原始做法, 使用矩陣
+standard error:原始作法，使用矩陣
 ```{r, results='asis'}
 stargazer(model_1, model_2, 
           se=list(
@@ -242,7 +264,6 @@ standard error: tidy 1
 ```{r}
 tidy(model_1_coeftest)-> model1CoeftestDF
 tidy(model_2_coeftest)-> model2CoeftestDF
-
 stargazer(model_1, model_2, 
           se=list(
             model1CoeftestDF$std.error,
@@ -251,7 +272,6 @@ stargazer(model_1, model_2,
           type="html",
           align=TRUE)
 ```
-
 standard error: tidy 2
 ```{r}
 stargazer(model_1, model_2, 
@@ -261,4 +281,11 @@ stargazer(model_1, model_2,
             ),
           type="html",
           align=TRUE)
+```
+
+
+## 模型比較
+
+```{r ols-comp-r, results='hide', warning=FALSE}
+
 ```
