@@ -216,3 +216,115 @@ stargazer(model_1,model_2,
           type="html",
           align=TRUE)
 ```
+
+```{r}
+library(dplyr)
+library(magrittr)
+```
+
+```{r}
+library(AER)
+```
+
+```{r}
+data("CigarettesSW")
+```
+
+```{r}
+CigarettesSW %<>% as_tibble() ->CigarettesSW  #串接，as_tibble是想改變他的class或是增加他class的特性
+as_tibble(CigarettesSW) -> CigarettesSW #非串接
+```
+
+```{r}
+CigarettesSW
+```
+```{r}
+CigarettesSW %<>% as_tibble() #表示串接完會再丟回來所以用<> 要先library(magrittr)
+CigarettesSW %>% as_tibble() ->CigarettesSW #兩個意思是一樣的
+```
+
+```{r}
+CigarettesSW %<>% 
+  filter(year=="1995") ->
+  CigarettesSW
+```
+
+```{r}
+CigarettesSW %<>% 
+  mutate(
+    rprice=price/cpi, #price income都是名目的所以除cpi
+    rincome=income/(population*cpi),
+    tdiff=(taxs-tax)/cpi
+  ) ->CigarettesSW
+```
+```{r}
+model1<-log(packs) ~ log(rprice)  #formula也可以先存起來 這樣的model本身是帶有常數項的
+model2<-log(packs) ~ log(rprice) + log(rincome)
+```
+
+```{r}
+model1NoConstant<-log(packs) ~ log(rprice)+0 #這樣就刪掉常數項了
+model2NoConstant2<-log(packs) ~ log(rprice) + log(rincome)-1
+```
+
+```{r}
+ols1<-lm(model1,CigarettesSW)
+ols2<-lm(model2,CigarettesSW)
+
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+lmtest::coeftest(ols1, vcov. = sandwich::vcovHC, type="HC1") -> ols1_coeftest #處理異質變異數
+coeftest(ols2, vcov. = vcovHC, type="HC1") -> ols2_coeftest
+```
+
+```{r}
+ols1
+ols1_coeftest
+```
+
+```{r}
+tsls_1iv <- ivreg(
+  log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff, #x:rprice w:rincome z:tdiff
+  data=CigarettesSW
+  ) 
+
+tsls_2iv <- ivreg(
+  log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff + I(tax/cpi), #z:tdiff+I(tax/cpi) 用I括起來表示告訴formula加進自己新創的變數
+  data=CigarettesSW
+  )
+```
+
+```{r}
+library(broom)
+broom::glance(tsls_1iv)
+broom::augment(tsls_1iv)
+broom::tidy(tsls_1iv)
+```
+
+```{r}
+class(tsls_1iv)
+```
+
+```{r}
+summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_1iv_tests #F分母df=Inf(infinite)
+summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_2iv_tests #地2個多放一個為了能夠做sargen test
+#ivreg才可以做vcov = sandwich, diagnostics = TRUE, df=Inf這樣的調整 ols不行
+```
+
+
+Sargen:排除條件的檢定
+```{r}
+summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf) #m=k=1 m:tdiff k:rprice 所以無法進行排除檢定(NA) 
+#Weak test pvalue1.04e-14*** small p reject Ho Ho:weak IV
+#Wu-hausman:Ho:esilon是否正交log(rprice) large pvalue0.263表不拒絕虛無假設
+```
+
+```{r}
+summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf)
+#sargen test pvalue0.5641 do not reject 所以第一關過了
+#weal test:拒絕 所以是strong 地2官也過了
+#hausman:有無必要進tsls if用0.1表示pvalue0.0569是小的表示要用tsls
+```
