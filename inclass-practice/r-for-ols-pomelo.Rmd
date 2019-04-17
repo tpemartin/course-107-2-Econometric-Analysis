@@ -289,3 +289,7 @@ stargazer(model_1, model_2,
 ```{r ols-comp-r, results='hide', warning=FALSE}
 
 ```
+```{r}
+library()
+```
+
