@@ -16,3 +16,157 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval=T)
 ```
+
+```{r}
+library(dplyr)
+library(magrittr)
+library(AER)
+data("CigarettesSW")
+```
+
+```{r}
+class(CigarettesSW)
+```
+
+
+as_tibble()
+```{r}
+CigarettesSW %>% as_tibble() -> CigarettesSW # 串接
+as_tibble(CigarettesSW) -> CigarettesSW # 非串接
+```
+
+```{r}
+class(CigarettesSW)
+```
+
+```{r}
+CigarettesSW
+```
+
+library(magrittr)
+```{r}
+CigarettesSW %<>% as_tibble()
+CigarettesSW %>% as_tibble() -> CigarettesSW 
+```
+
+```{r}
+CigarettesSW %>% 
+  filter(year=="1995") -> 
+  CigarettesSW
+```
+
+```{r}
+CigarettesSW %<>% filter(year=="1995")
+```
+
+```{r}
+CigarettesSW %>% 
+  mutate(
+    rprice=price/cpi,
+    rincome=income/(population*cpi),
+    tdiff=(taxs-tax)/cpi
+  ) -> CigarettesSW
+```
+
+```{r}
+model1 <- log(packs) ~ log(rprice) 
+model2 <- log(packs) ~ log(rprice) + log(rincome)
+```
+
+```{r}
+model1noConstant <- 
+  log(packs) ~ log(rprince)+0
+model1noConstant2 <- 
+  log(packs) ~ log(rprince)-1
+```
+
+```{r}
+class(model1)
+```
+
+# OLS 
+```{r}
+ols1<-lm(model1,CigarettesSW)
+ols2<-lm(model2,CigarettesSW)
+```
+
+
+```{r}
+library(sandwich)
+library(lmtest)
+library(stargazer)
+
+#使用vcovHC函數來計算HC1型的異質變異（即橫斷面資料下的線性迴歸模型）
+lmtest::coeftest(ols1, vcov. = sandwich::vcovHC, type="HC1") -> ols1_coeftest
+coeftest(ols2, vcov. = vcovHC, type="HC1") -> ols2_coeftest
+```
+
+```{r}
+ols1_coeftest
+ols2_coeftest
+```
+
+```{r}
+ols1
+ols1_coeftest
+```
+
+
+```{r}
+library(stargazer)
+stargazer(ols1,ols2,type="html")
+```
+
+```{r, results="asis"}
+stargazer(ols1_coeftest, ols2_coeftest, 
+          se=list(ols1_coeftest[,"Std. Error"], ols2_coeftest[,2]),
+          type="html",
+          align=TRUE)
+```
+
+TSLS
+```{r}
+tsls_1iv <- ivreg(
+  log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff,
+  data=CigarettesSW
+  ) 
+
+tsls_2iv <- ivreg(
+  log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff + I(tax/cpi),
+  data=CigarettesSW
+  )
+```
+
+
+```{r}
+library(broom)
+broom::glance(tsls_1iv)
+broom::augment(tsls_1iv)
+broom::tidy(tsls_1iv)
+```
+
+```{r}
+class(tsls_1iv)
+```
+
+
+```{r}
+summary(tsls_1iv)
+```
+
+
+```{r}
+summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_1iv_tests
+summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_2iv_tests
+```
+
+
+Sargan: exclusiveness test
+```{r}
+summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf)
+```
+
+```{r}
+summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf)
+```
+
