@@ -147,6 +147,7 @@ journals %>%
 ```
 ```{r}
 #broom的function，
+library(broom)
 tidy(model1) #估計係數的東西
 ```
 ```{r}
