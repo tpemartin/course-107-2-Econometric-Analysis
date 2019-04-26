@@ -232,26 +232,29 @@ data("CigarettesSW")
 ```
 
 ```{r}
-CigarettesSW %<>% as_tibble() ->CigarettesSW  #串接，as_tibble是想改變他的class或是增加他class的特性
+CigarettesSW %<>% as_tibble() ->CigarettesSW  #串接，as_tibble(as開頭的)是想改變他的class或是增加他class的特性
 as_tibble(CigarettesSW) -> CigarettesSW #非串接
 ```
 
 ```{r}
-CigarettesSW
+CigarettesSW #變tibble的話就不會全部一次跑出來
 ```
 ```{r}
-CigarettesSW %<>% as_tibble() #表示串接完會再丟回來所以用<> 要先library(magrittr)
+CigarettesSW %<>% as_tibble() #表示串接完會再丟回來所以用<> 要先library(magrittr)magrittr底下的串接語法
 CigarettesSW %>% as_tibble() ->CigarettesSW #兩個意思是一樣的
 ```
 
 ```{r}
-CigarettesSW %<>% 
+CigarettesSW %>% 
   filter(year=="1995") ->
   CigarettesSW
+
+CigarettesSW %<>% 
+  filter(year=="1995") #同樣意思
 ```
 
 ```{r}
-CigarettesSW %<>% 
+CigarettesSW %>% 
   mutate(
     rprice=price/cpi, #price income都是名目的所以除cpi
     rincome=income/(population*cpi),
@@ -259,8 +262,9 @@ CigarettesSW %<>%
   ) ->CigarettesSW
 ```
 ```{r}
-model1<-log(packs) ~ log(rprice)  #formula也可以先存起來 這樣的model本身是帶有常數項的
+model1<-log(packs) ~ log(rprice)  #formula(class)也可以先存起來 這樣的model本身是帶有常數項的
 model2<-log(packs) ~ log(rprice) + log(rincome)
+class(model1)
 ```
 
 ```{r}
@@ -271,7 +275,7 @@ model2NoConstant2<-log(packs) ~ log(rprice) + log(rincome)-1
 ```{r}
 ols1<-lm(model1,CigarettesSW)
 ols2<-lm(model2,CigarettesSW)
-
+#這邊還沒有調整一直變異數的公式，所以要用sandwich裡的vcocHC的函數，且設定type
 library(sandwich)
 library(lmtest)
 library(stargazer)
@@ -282,11 +286,13 @@ coeftest(ols2, vcov. = vcovHC, type="HC1") -> ols2_coeftest
 ```
 
 ```{r}
-ols1
-ols1_coeftest
+ols1 #沒有調整的
+ols1_coeftest #才是調整完的standard error
+#係數值不會變(因為都是做ols正交投射)
 ```
 
 ```{r}
+#AER底下的函數
 tsls_1iv <- ivreg(
   log(packs) ~ log(rprice) + log(rincome) | log(rincome) + tdiff, #x:rprice w:rincome z:tdiff
   data=CigarettesSW
