@@ -1,0 +1,47 @@
+---
+title: "r-for-panel-yofun"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+```
+
+```{r}
+library(readr)
+fatality <- read_csv("https://raw.githubusercontent.com/tpemartin/Econometric-Analysis/master/Part%20II/fatality.csv")
+```
+```{r}
+class(fatality) #從這4個角度看待這資料，data frame本身沒有panel的概念所以要透過pdata.frame做另外的轉換
+```
+
+```{r}
+fatality %>% summarise_all(funs(class))
+```
+
+```{r}
+library(plm)
+```
+
+```{r}
+pdf_fatality<-pdata.frame(fatality,c("state","year")) #c是產生向量
+```
+
+```{r}
+class(pdf_fatality)
+```
+
+
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(aes(x=beertax,y=I(mrall*1000)))
+```
