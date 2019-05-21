@@ -1,0 +1,40 @@
+---
+title: "r for panel"
+author: "林茂廷"
+date: "5/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+```
+
+```{r}
+library(readr)
+fatality <- read_csv("https://raw.githubusercontent.com/tpemartin/Econometric-Analysis/master/Part%20II/fatality.csv")
+```
+
+```{r}
+library(plm)
+```
+
+```{r}
+class(fatality)
+```
+
+```{r}
+pdf_fatality<-pdata.frame(fatality,c("state","year"))
+```
+
+```{r}
+class(pdf_fatality)
+```
+
