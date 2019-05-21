@@ -122,7 +122,15 @@ journals %>%
 數值變數v.s.數值變數
 
 ```{r ols-paircoor3-r, results='hide'}
+# 判斷變數是否為數值類別
+is_numeric<-function(x) all(is.numeric(x))
+# 計算數數與citeprice的相關係數
+cor_citeprice<-function(x) cor(x,journals$citeprice)
 
+journals %>%  
+  select_if(is_numeric) %>%
+  summarise_all(cor_citeprice) %>%
+  kable()
 
 ```
 
@@ -317,7 +325,7 @@ class(tsls_1iv)
 
 ```{r}
 summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_1iv_tests #F分母df=Inf(infinite)
-summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_2iv_tests #地2個多放一個為了能夠做sargen test
+summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_2iv_tests #第2個多放一個為了能夠做sargen test
 #ivreg才可以做vcov = sandwich, diagnostics = TRUE, df=Inf這樣的調整 ols不行
 ```
 
@@ -325,13 +333,13 @@ summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf) -> tsls_2iv_tests
 Sargen:排除條件的檢定
 ```{r}
 summary(tsls_1iv, vcov = sandwich, diagnostics = TRUE, df=Inf) #m=k=1 m:tdiff k:rprice 所以無法進行排除檢定(NA) 
-#Weak test pvalue1.04e-14*** small p reject Ho Ho:weak IV
+#Weak test pvalue1.04e-08*** small p reject Ho Ho:weak IV
 #Wu-hausman:Ho:esilon是否正交log(rprice) large pvalue0.263表不拒絕虛無假設
 ```
 
 ```{r}
 summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf)
 #sargen test pvalue0.5641 do not reject 所以第一關過了
-#weal test:拒絕 所以是strong 地2官也過了
+#weal test:拒絕 所以是strong 第2關也過了
 #hausman:有無必要進tsls if用0.1表示pvalue0.0569是小的表示要用tsls
 ```
