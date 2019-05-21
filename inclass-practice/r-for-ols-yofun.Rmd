@@ -343,3 +343,7 @@ summary(tsls_2iv, vcov = sandwich, diagnostics = TRUE, df=Inf)
 #weal test:拒絕 所以是strong 第2關也過了
 #hausman:有無必要進tsls if用0.1表示pvalue0.0569是小的表示要用tsls
 ```
+
+```{r}
+
+```
