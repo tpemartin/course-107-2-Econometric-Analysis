@@ -38,3 +38,124 @@ pdf_fatality<-pdata.frame(fatality,c("state","year"))
 class(pdf_fatality)
 ```
 
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(dplyr)
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(aes(x=beertax,y=I(mrall*1000)))
+```
+
+非mapping的color設定
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(x=beertax,y=I(mrall*1000)),
+             color="blue")
+```
+
+mapping的color設定
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=state))
+```
+
+
+```{r}
+fatality$state %>% class
+```
+
+```{r}
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state)))
+```
+
+```{r}
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state),
+      shape=as.factor(year)))
+```
+
+```{r}
+fatality %>% 
+  group_by(state) %>% #依state分組進行以下程序：
+  mutate(
+    mrall_demean=mrall-mean(mrall),
+    beertax_demean=beertax-mean(beertax)
+    ) %>%
+  select(mrall_demean,beertax_demean,state) %>%
+  ungroup() -> demean_results # grouping variable會被保留
+```
+
+```{r}
+demean_results %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))
+```
+
+demean前第40州的圖
+```{r}
+fatality %>% 
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state)),
+    size=5)
+```
+
+demean後第40州的圖
+```{r}
+demean_results %>%
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=I(mrall_demean*1000),color=as.factor(state)),
+             size=5)
+
+```
+
+```{r}
+demean_results %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))+
+  geom_smooth(aes(x=beertax_demean,y=mrall_demean),method = "lm",se=FALSE)
+```
+
+
+```{r}
+lm(mrall_demean~beertax_demean,data=demean_results) %>% summary()
+```
+
+
+
+```{r}
+lm(mrall~beertax+factor(state), data=fatality)  %>%
+  summary()
+# results$residuals 也會是demean的結果
+```
+
