@@ -26,11 +26,11 @@ fatality %>% summarise_all(funs(class))
 ```
 
 ```{r}
-library(plm)
+library(plm) #panel linear model
 ```
 
 ```{r}
-pdf_fatality<-pdata.frame(fatality,c("state","year")) #c是產生向量
+pdf_fatality<-pdata.frame(fatality,c("state","year")) #c是產生向量 讓電腦知道哪個是i哪個是t
 ```
 
 ```{r}
@@ -40,8 +40,67 @@ class(pdf_fatality)
 
 ```{r}
 #各州啤酒稅（beertax）與車禍死亡率（mrall）
-library(ggplot2)
+library(ggplot2) #在canvas畫布上層疊 + geometric objects +...(都是以geom_開頭)
+fatality %>% #原本的data 用%>%先確定DPLYR有引入
+  ggplot()+
+  geom_point(aes(x=beertax,y=I(mrall*1000))) #加上層疊的圖形叫做point，aes是個函數(X軸是甚麼Y軸是甚麼)
+#變數經過轉換再畫所以*1000 要記得用I 如果直接用mrall就不用I
+#正向關係 所有州來看的 打算用顏色區分不同的州
+```
+mapping的color設定
+```{r}
 fatality %>% 
   ggplot()+
-  geom_point(aes(x=beertax,y=I(mrall*1000)))
+  geom_point(
+    aes(x=beertax,
+        y=I(mrall*1000),
+        color=as.factor(state))) #factor是類別 本來沒轉換時會用漸層來畫 #color由指定的資料來map出來的，用年份就用year,gglot會根據資料的type來決定顏色要怎麼上
+#同個顏色群很像是負斜率的 每個州有自己的固定效果
+```
+
+```{r}
+fatality$state%>% class #被當成連續的數值了，不是間斷的概念 所以資料視覺化的時候是用漸層來畫
+```
+
+```{r}
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(x=beertax,
+        y=I(mrall*1000),
+        color=as.factor(state),
+        shape=as.factor(year)))
+```
+
+```{r}
+fatality %>% 
+  group_by(state) %>% #依state分組進行以下程序：
+  mutate(
+    mrall_demean=mrall-mean(mrall), #mean是要依照state來分群計算的，所以前面用group_by
+    beertax_demean=beertax-mean(beertax)
+    ) %>%
+  select(mrall_demean,beertax_demean,state) %>%
+  ungroup() -> demean_results # grouping variable會被保留 存在demean_results這dataframe
+```
+
+```{r}
+demean_results %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))+
+  geom_smooth(aes(x=beertax_demean,y=mrall_demean),method = "lm",se=FALSE)
+#geom_smooth畫樣本配適出來的平滑的線 lm指要線性的結果
+```
+
+```{r}
+lm(mrall_demean~beertax_demean,data=demean_results) #要算那條平滑線的斜率-6.559
+
+```
+
+```{r}
+lm(mrall~beertax+factor(state), data=fatality) %>% summary()
+```
+
+```{r}
+fatality %>% lm(data=., mrall~factor(state)) -> results
+# results$residuals 也會是demean的結果
 ```
