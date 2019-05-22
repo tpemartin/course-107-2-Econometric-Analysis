@@ -104,3 +104,60 @@ lm(mrall~beertax+factor(state), data=fatality) %>% summary()
 fatality %>% lm(data=., mrall~factor(state)) -> results
 # results$residuals 也會是demean的結果
 ```
+
+```{r}
+model<-mrall~beertax
+```
+
+##plm
+```{r}
+library(plm)
+#fatality<-
+  #pdata.frame(fatality,c("state","year"))
+pool1<-plm(model, data=fatality, model='pooling')
+summary(pool1)
+```
+
+Random effect: model="random"
+```{r}
+re1<-plm(model, data=fatality, model='random')
+summary(re1)
+```
+
+
+Fixed effect:model="within"
+```{r}
+fe1<-plm(model, data=fatality, model='within', effect='individual')
+summary(fe1)
+```
+
+```{r}
+fe2<-plm(model, data=fatality, model='within', effect='twoways') #兩個固定效果要寫twoways
+summary(fe2)
+```
+
+```{r}
+library(stargazer)
+stargazer(pool1,re1,fe1,fe2,type='text',
+          column.labels = c("Pooled OLS","RE","FE-individual","FE-two-ways"))
+```
+
+```{r}
+phtest(fe1,re1) #p-value很小 reject
+#Ho:Vit獨立於beertaxit
+```
+
+```{r} 
+fatality %>% #加其他控制變數
+  plm(mrall~beertax+unrate, data=., method="within",effect = "individual")
+```
+
+#資料分析流程
+##確認變數class正確性
+```{r}
+fatality %>%
+  mutate(
+    state=as.factor(state),
+    year=as.ordered(year)
+  ) -> fatality #之後就不用每次碰到都要轉換一次
+```
