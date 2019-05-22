@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval=F)
 ```
 
 ##
@@ -168,5 +168,64 @@ $$
 lm(mrall~beertax+factor(state), data=fatality)  %>%
   summary()
 # results$residuals 也會是demean的結果
+```
+
+# 資料分析流程
+
+## 確定變數class正確性
+
+```{r}
+fatality %>%
+  mutate(
+    state=as.factor(state),
+    year=as.ordered(year)
+  ) -> fatality
+```
+
+## 作圖
+
+## 資料分析
+
+```{r}
+lm(mrall~beertax+state, data=fatality)
+```
+## plm
+
+OLS: model="pooling"
+```{r}
+# fatality <- 
+#   pdata.frame(fatality,c("state","year"))
+model<-mrall~beertax
+pool1<-plm(model, data=fatality, model='pooling')
+summary(pool1)
+```
+
+Random Effect: model="random"
+```{r}
+re1<-plm(model, data=fatality, model='random')
+summary(re1)
+```
+
+Fixed Effect: model="within"
+```{r}
+fe1<-plm(model, data=fatality, model='within', effect='individual')
+summary(fe1)
+```
+
+```{r}
+fe2<-plm(model, data=fatality, model='within', effect='twoways')
+summary(fe2)
+```
+
+```{r, results="asis"}
+library(stargazer)
+stargazer(pool1,re1,fe1,fe2,type='html',
+          column.labels = c("Pooled OLS","RE","FE-individual","FE-two-ways"))
+```
+
+# hausman test
+
+```{r}
+phtest(fe1,re1)
 ```
 
