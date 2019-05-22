@@ -149,7 +149,8 @@ demean_results %>%
 ## Fixed Effect Estimation
 Two approaches, same results.
 
-demean approach
+###  demean approach
+
 $$
 mrall_{it}-\bar{mrall}_i=\beta_0+\beta_1 *(beertax_{it}-\bar{beertax}_i)+\epsilon_{it}
 $$
@@ -158,8 +159,8 @@ $$
 lm(mrall_demean~beertax_demean,data=demean_results) %>% summary()
 ```
 
+### LSDV approach
 
-LSDV approach
 $$
 mrall_{it}=\sum_{j} \alpha_jDj_i+\beta_1beertax_{it}+\epsilon_{it}
 $$
