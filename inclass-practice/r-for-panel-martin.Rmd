@@ -1,0 +1,231 @@
+---
+title: "r for panel"
+author: "林茂廷"
+date: "5/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=F)
+```
+
+##
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+```
+
+```{r}
+library(readr)
+fatality <- read_csv("https://raw.githubusercontent.com/tpemartin/Econometric-Analysis/master/Part%20II/fatality.csv")
+```
+
+```{r}
+library(plm)
+```
+
+```{r}
+class(fatality)
+```
+
+```{r}
+pdf_fatality<-pdata.frame(fatality,c("state","year"))
+```
+
+```{r}
+class(pdf_fatality)
+```
+
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(dplyr)
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(aes(x=beertax,y=I(mrall*1000)))
+```
+
+非mapping的color設定
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(x=beertax,y=I(mrall*1000)),
+             color="blue")
+```
+
+mapping的color設定
+```{r}
+#各州啤酒稅（beertax）與車禍死亡率（mrall）
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=state))
+```
+
+
+```{r}
+fatality$state %>% class
+```
+
+```{r}
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state)))
+```
+
+```{r}
+library(ggplot2)
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state),
+      shape=as.factor(year)))
+```
+
+```{r}
+fatality %>% 
+  group_by(state) %>% #依state分組進行以下程序：
+  mutate(
+    mrall_demean=mrall-mean(mrall),
+    beertax_demean=beertax-mean(beertax)
+    ) %>%
+  select(mrall_demean,beertax_demean,state) %>%
+  ungroup() -> demean_results # grouping variable會被保留
+```
+
+```{r}
+demean_results %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))
+```
+
+demean前第40州的圖
+```{r}
+fatality %>% 
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state)),
+    size=5)
+```
+
+demean後第40州的圖
+```{r}
+demean_results %>%
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=I(mrall_demean*1000),color=as.factor(state)),
+             size=5)
+
+```
+
+```{r}
+demean_results %>%
+  ggplot()+
+  geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))+
+  geom_smooth(aes(x=beertax_demean,y=mrall_demean),method = "lm",se=FALSE)
+```
+
+## Fixed Effect Estimation
+Two approaches, same results.
+
+###  demean approach
+
+$$
+mrall_{it}-\bar{mrall}_i=\beta_0+\beta_1 *(beertax_{it}-\bar{beertax}_i)+\epsilon_{it}
+$$
+
+```{r}
+lm(mrall_demean~beertax_demean,data=demean_results) %>% summary()
+```
+
+### LSDV approach
+
+$$
+mrall_{it}=\sum_{j} \alpha_jDj_i+\beta_1beertax_{it}+\epsilon_{it}
+$$
+```{r}
+lm(mrall~beertax+factor(state), data=fatality)  %>%
+  summary()
+# results$residuals 也會是demean的結果
+```
+
+# 資料分析流程
+
+## 確定變數class正確性
+
+```{r}
+fatality %>%
+  mutate(
+    state=as.factor(state),
+    year=as.ordered(year)
+  ) -> fatality
+```
+
+## 作圖
+
+## 資料分析
+
+```{r}
+lm(mrall~beertax+state, data=fatality)
+```
+## plm
+
+OLS: model="pooling"
+```{r}
+# fatality <- 
+#   pdata.frame(fatality,c("state","year"))
+model<-mrall~beertax
+pool1<-plm(model, data=fatality, model='pooling')
+summary(pool1)
+```
+
+Random Effect: model="random"
+```{r}
+re1<-plm(model, data=fatality, model='random')
+summary(re1)
+```
+
+Fixed Effect: model="within"
+```{r}
+fe1<-plm(model, data=fatality, model='within', effect='individual')
+summary(fe1)
+```
+
+```{r}
+fe2<-plm(model, data=fatality, model='within', effect='twoways')
+summary(fe2)
+```
+
+```{r, results="asis"}
+library(stargazer)
+stargazer(pool1,re1,fe1,fe2,type='html',
+          column.labels = c("Pooled OLS","RE","FE-individual","FE-two-ways"))
+```
+
+# hausman test
+
+```{r}
+phtest(fe1,re1)
+```
+
