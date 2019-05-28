@@ -173,3 +173,32 @@ fatality %>%
     year=as.ordered(year)
   ) -> fatality #之後就不用每次碰到都要轉換一次
 ```
+
+demean前40州的圖
+```{r}
+fatality %>%
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state),
+      size=5
+    )
+  )
+```
+demean後40州的圖
+```{r}
+demean_results %>%
+  filter(state==40) %>%
+  ggplot()+
+  geom_point(
+    aes(
+      x=beertax,
+      y=I(mrall*1000),
+      color=as.factor(state),
+      size=5
+    )
+  )
+```
