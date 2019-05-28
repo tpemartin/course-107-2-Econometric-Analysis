@@ -122,10 +122,13 @@ model<-mrall~beertax
 ```
 
 ##plm
+
+OLS: model="pooling"
 ```{r}
 library(plm)
 #fatality<-
   #pdata.frame(fatality,c("state","year"))
+model<-mrall~beertax
 pool1<-plm(model, data=fatality, model='pooling')
 summary(pool1)
 ```
@@ -173,7 +176,12 @@ fatality %>%
     year=as.ordered(year)
   ) -> fatality #之後就不用每次碰到都要轉換一次
 ```
+#作圖
+##資料分析
 
+```{r}
+lm(mrall~beertax+state, data=fatality)
+```
 demean前40州的圖
 ```{r}
 fatality %>%
