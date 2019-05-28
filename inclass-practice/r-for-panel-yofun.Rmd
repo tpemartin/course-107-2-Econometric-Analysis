@@ -39,6 +39,7 @@ class(pdf_fatality)
 
 
 ```{r}
+#用%>%記得先引入dplyr
 #各州啤酒稅（beertax）與車禍死亡率（mrall）
 library(ggplot2) #在canvas畫布上層疊 + geometric objects +...(都是以geom_開頭)
 fatality %>% #原本的data 用%>%先確定DPLYR有引入
@@ -46,7 +47,18 @@ fatality %>% #原本的data 用%>%先確定DPLYR有引入
   geom_point(aes(x=beertax,y=I(mrall*1000))) #加上層疊的圖形叫做point，aes是個函數(X軸是甚麼Y軸是甚麼)
 #變數經過轉換再畫所以*1000 要記得用I 如果直接用mrall就不用I
 #正向關係 所有州來看的 打算用顏色區分不同的州
+#aes中stroke指點的外圈顏色，fills指內部顏色，還有colour size group shape等等
 ```
+非mapping的color設定，沒有把color寫在aes函數中
+```{r}
+fatality %>% 
+  ggplot()+
+  geom_point(
+    aes(x=beertax,y=I(mrall*1000)),
+    color="blue")
+
+```
+
 mapping的color設定
 ```{r}
 fatality %>% 
@@ -74,7 +86,7 @@ fatality %>%
 
 ```{r}
 fatality %>% 
-  group_by(state) %>% #依state分組進行以下程序：
+  group_by(state) %>% #依state分組進行以下程序：不然沒有打groupby的話就會是全部的樣本點平均
   mutate(
     mrall_demean=mrall-mean(mrall), #mean是要依照state來分群計算的，所以前面用group_by
     beertax_demean=beertax-mean(beertax)
@@ -85,7 +97,7 @@ fatality %>%
 
 ```{r}
 demean_results %>%
-  ggplot()+
+  ggplot()+ #先叫出畫布
   geom_point(aes(x=beertax_demean,y=mrall_demean,color=as.factor(state)))+
   geom_smooth(aes(x=beertax_demean,y=mrall_demean),method = "lm",se=FALSE)
 #geom_smooth畫樣本配適出來的平滑的線 lm指要線性的結果
