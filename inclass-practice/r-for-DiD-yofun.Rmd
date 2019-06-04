@@ -12,7 +12,110 @@ library(dplyr)
 library(magrittr)
 library(ggplot2)
 ```
-
+##引入資料
 ```{r}
 load(url("https://github.com/tpemartin/Econometric-Analysis/blob/master/data/public.rda?raw=true"))
+```
+
+```{r}
+public %>%
+  select(EMPFT,EMPPT,EMPFT2,EMPPT2) #資料沒有給時間，是用+2分為政策前後
+```
+
+```{r}
+public %>%
+  mutate_at(
+    vars(EMPFT,EMPPT,EMPFT2,EMPPT2),
+    funs(as.numeric) #選擇變數進行變化，改成list(as.numeric)
+    ) -> public  
+```
+
+```{r}
+public %>% 
+  group_by(STATE) %>% # 1 if NJ; 0 if Pa
+  summarise(mFT_before=mean(EMPFT,na.rm=T),
+            mPT_before=mean(EMPPT,na.rm=T),
+            mFT_after=mean(EMPFT2,na.rm=T),
+            mPT_after=mean(EMPPT2,na.rm=T)) %>%
+  ungroup -> #group_by最後習慣會ungroup他
+  employment_change
+```
+
+```{r}
+library(kableExtra) #做表用的
+employment_change %>% 
+  select(STATE,mFT_before,mFT_after) %>%
+  kable("html")
+```
+
+##原始的
+```{r}
+public %>%
+  select(STATE,EMPFT,EMPFT2)
+```
+##處理完的
+```{r} 
+library(tidyr)
+public %>% 
+  select(STATE,EMPFT,EMPFT2) %>%
+  group_by(STATE) %>%
+  gather(type,emp,-STATE) -> public2
+
+public2
+```
+##產生虛擬變數
+```{r}
+public2 %>%
+  mutate(
+    STATE1=(STATE==1),
+    AFTER=(type=="EMPFT2"),
+    PolicyImpact=STATE1*AFTER #邏輯變數被當數學運算時false會是0
+  ) -> public2
+
+public2
+```
+
+```{r}
+lm(emp~STATE1+AFTER+PolicyImpact,data=public2)->DD_result #lm跑出來的是古典假設底下的結果
+DD_result
+```
+##factor的應用
+
+
+```{r}
+lm(emp~STATE1+AFTER,data=public2)
+```
+```{r}
+lm(emp~factor(STATE)+factor(type),data=public2) #用factor括號起來就變類別變數
+```
+
+
+```{r}
+lm(emp~STATE1+AFTER+I(STATE1*AFTER),data=public2)
+```
+```{r}
+lm(emp~factor(STATE)+factor(type)+factor(STATE):factor(type),data=public2)
+#兩個dummy交叉像用分號，不是用*
+```
+
+##clubSandwich
+```{r}
+library(clubSandwich)
+```
+
+```{r}
+public2 %>% 
+  mutate(cluster=factor(STATE):factor(type)) -> public2
+```
+```{r}
+public2$cluster
+```
+
+```{r}
+public2$cluster %>% class
+public2$cluster %>% as.factor %>% levels
+```
+
+```{r}
+coef_test(DD_result, vcov = "CR2", cluster = public2$cluster)#coef_test來自clubSandwich，但和前面的coeftest用法一樣
 ```
